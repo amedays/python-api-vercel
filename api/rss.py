@@ -2,8 +2,8 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from datetime import datetime
 from xml.dom import minidom as DOM
 import requests
-import io
 from urllib import parse
+import logging
 # import urllib
 
 
@@ -12,6 +12,9 @@ class handler(BaseHTTPRequestHandler):
     # TODO: 添加更多的筛选功能
 
     def do_GET(self):
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s - "%(pathname)s", line %(lineno)d, - %(levelname)s: %(message)s')
+        logger = logging.getLogger(__name__)
         try:
             class Item():
                 '''能够根据指定属性判断item重复'''
@@ -72,18 +75,21 @@ class handler(BaseHTTPRequestHandler):
                         channel.removeChild(item)
                     for item in items:
                         channel.appendChild(item)
-            if first:
-                writer = io.StringIO()
-                first.writexml(writer, encoding="utf-8")
-            res = first.toprettyxml(
-                encoding="utf-8") if first else None
+            res = first.toprettyxml(encoding="utf-8") if first else None
         except Exception as e:
-            res = io.StringIO(str(e))
+            raise e
         self.send_response(200)
         self.send_header('Content-type', 'application/xml')
         self.end_headers()
-        if res:
-            self.wfile.write(res)
+
+        if not res:
+            res = "无返回错误"
+        if isinstance(res, str):
+            logger.debug(res)
+            res = res.encode()
+        elif isinstance(res, bytes):
+            logger.debug(res.decode())
+        self.wfile.write(res)
         return
 
 
