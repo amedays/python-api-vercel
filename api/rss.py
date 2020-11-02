@@ -84,6 +84,8 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         if res:
             self.wfile.write(res)
+        else:
+            self.wfile.write(io.StringIO("无返回错误"))
         return
 
 
